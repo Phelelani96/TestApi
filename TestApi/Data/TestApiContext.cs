@@ -15,5 +15,9 @@ namespace TestApi.Data
         }
 
         public DbSet<TestApi.Models.Student> Student { get; set; } = default!;
+
+        public DbSet<TestApi.Models.Module>? Module { get; set; }
+
+        public DbSet<TestApi.Models.Enrollment>? Enrollment { get; set; }
     }
 }

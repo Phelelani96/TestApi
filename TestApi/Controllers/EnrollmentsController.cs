@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using TestApi.Data;
 using TestApi.Models;
 
@@ -15,61 +14,58 @@ namespace TestApi.Controllers
     [EnableCors("Client")]
     [Route("api/[controller]")]
     [ApiController]
-    public class StudentsController : ControllerBase
+    public class EnrollmentsController : ControllerBase
     {
         private readonly TestApiContext _context;
 
-        public StudentsController(TestApiContext context)
+        public EnrollmentsController(TestApiContext context)
         {
             _context = context;
         }
 
-        // GET: api/Students
+        // GET: api/Enrollments
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Student>>> GetStudent()
+        public async Task<ActionResult<IEnumerable<Enrollment>>> GetEnrollment()
         {
-          if (_context.Student == null)
+          if (_context.Enrollment == null)
           {
               return NotFound();
           }
-            return await _context.Student.ToListAsync();
-        }
-        [HttpGet]
-        [Route("/status")]
-        public string ApiStatus()
-        {
-            return JsonConvert.SerializeObject("Up");
+            return await _context.Enrollment
+                .Include(e => e.student)
+                .Include(e => e.module)
+                .ToListAsync();
         }
 
-        // GET: api/Students/5
+        // GET: api/Enrollments/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Student>> GetStudent(int id)
+        public async Task<ActionResult<Enrollment>> GetEnrollment(int id)
         {
-          if (_context.Student == null)
+          if (_context.Enrollment == null)
           {
               return NotFound();
           }
-            var student = await _context.Student.FindAsync(id);
+            var enrollment = await _context.Enrollment.FindAsync(id);
 
-            if (student == null)
+            if (enrollment == null)
             {
                 return NotFound();
             }
 
-            return student;
+            return enrollment;
         }
 
-        // PUT: api/Students/5
+        // PUT: api/Enrollments/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutStudent(int id, Student student)
+        public async Task<IActionResult> PutEnrollment(int id, Enrollment enrollment)
         {
-            if (id != student.Id)
+            if (id != enrollment.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(student).State = EntityState.Modified;
+            _context.Entry(enrollment).State = EntityState.Modified;
 
             try
             {
@@ -77,7 +73,7 @@ namespace TestApi.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!StudentExists(id))
+                if (!EnrollmentExists(id))
                 {
                     return NotFound();
                 }
@@ -90,44 +86,44 @@ namespace TestApi.Controllers
             return NoContent();
         }
 
-        // POST: api/Students
+        // POST: api/Enrollments
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Student>> PostStudent(Student student)
+        public async Task<ActionResult<Enrollment>> PostEnrollment(Enrollment enrollment)
         {
-          if (_context.Student == null)
+          if (_context.Enrollment == null)
           {
-              return Problem("Entity set 'TestApiContext.Student'  is null.");
+              return Problem("Entity set 'TestApiContext.Enrollment'  is null.");
           }
-            _context.Student.Add(student);
+            _context.Enrollment.Add(enrollment);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetStudent", new { id = student.Id }, student);
+            return CreatedAtAction("GetEnrollment", new { id = enrollment.Id }, enrollment);
         }
 
-        // DELETE: api/Students/5
+        // DELETE: api/Enrollments/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteStudent(int id)
+        public async Task<IActionResult> DeleteEnrollment(int id)
         {
-            if (_context.Student == null)
+            if (_context.Enrollment == null)
             {
                 return NotFound();
             }
-            var student = await _context.Student.FindAsync(id);
-            if (student == null)
+            var enrollment = await _context.Enrollment.FindAsync(id);
+            if (enrollment == null)
             {
                 return NotFound();
             }
 
-            _context.Student.Remove(student);
+            _context.Enrollment.Remove(enrollment);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool StudentExists(int id)
+        private bool EnrollmentExists(int id)
         {
-            return (_context.Student?.Any(e => e.Id == id)).GetValueOrDefault();
+            return (_context.Enrollment?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }

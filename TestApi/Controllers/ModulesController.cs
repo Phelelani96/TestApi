@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using TestApi.Data;
 using TestApi.Models;
 
@@ -15,61 +14,55 @@ namespace TestApi.Controllers
     [EnableCors("Client")]
     [Route("api/[controller]")]
     [ApiController]
-    public class StudentsController : ControllerBase
+    public class ModulesController : ControllerBase
     {
         private readonly TestApiContext _context;
 
-        public StudentsController(TestApiContext context)
+        public ModulesController(TestApiContext context)
         {
             _context = context;
         }
 
-        // GET: api/Students
+        // GET: api/Modules
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Student>>> GetStudent()
+        public async Task<ActionResult<IEnumerable<Module>>> GetModule()
         {
-          if (_context.Student == null)
+          if (_context.Module == null)
           {
               return NotFound();
           }
-            return await _context.Student.ToListAsync();
-        }
-        [HttpGet]
-        [Route("/status")]
-        public string ApiStatus()
-        {
-            return JsonConvert.SerializeObject("Up");
+            return await _context.Module.Include(s => s.enrollments).ToListAsync();
         }
 
-        // GET: api/Students/5
+        // GET: api/Modules/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Student>> GetStudent(int id)
+        public async Task<ActionResult<Module>> GetModule(int id)
         {
-          if (_context.Student == null)
+          if (_context.Module == null)
           {
               return NotFound();
           }
-            var student = await _context.Student.FindAsync(id);
+            var @module = await _context.Module.FindAsync(id);
 
-            if (student == null)
+            if (@module == null)
             {
                 return NotFound();
             }
 
-            return student;
+            return @module;
         }
 
-        // PUT: api/Students/5
+        // PUT: api/Modules/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutStudent(int id, Student student)
+        public async Task<IActionResult> PutModule(int id, Module @module)
         {
-            if (id != student.Id)
+            if (id != @module.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(student).State = EntityState.Modified;
+            _context.Entry(@module).State = EntityState.Modified;
 
             try
             {
@@ -77,7 +70,7 @@ namespace TestApi.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!StudentExists(id))
+                if (!ModuleExists(id))
                 {
                     return NotFound();
                 }
@@ -90,44 +83,44 @@ namespace TestApi.Controllers
             return NoContent();
         }
 
-        // POST: api/Students
+        // POST: api/Modules
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Student>> PostStudent(Student student)
+        public async Task<ActionResult<Module>> PostModule(Module @module)
         {
-          if (_context.Student == null)
+          if (_context.Module == null)
           {
-              return Problem("Entity set 'TestApiContext.Student'  is null.");
+              return Problem("Entity set 'TestApiContext.Module'  is null.");
           }
-            _context.Student.Add(student);
+            _context.Module.Add(@module);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetStudent", new { id = student.Id }, student);
+            return CreatedAtAction("GetModule", new { id = @module.Id }, @module);
         }
 
-        // DELETE: api/Students/5
+        // DELETE: api/Modules/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteStudent(int id)
+        public async Task<IActionResult> DeleteModule(int id)
         {
-            if (_context.Student == null)
+            if (_context.Module == null)
             {
                 return NotFound();
             }
-            var student = await _context.Student.FindAsync(id);
-            if (student == null)
+            var @module = await _context.Module.FindAsync(id);
+            if (@module == null)
             {
                 return NotFound();
             }
 
-            _context.Student.Remove(student);
+            _context.Module.Remove(@module);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool StudentExists(int id)
+        private bool ModuleExists(int id)
         {
-            return (_context.Student?.Any(e => e.Id == id)).GetValueOrDefault();
+            return (_context.Module?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }
